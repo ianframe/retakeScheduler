@@ -2,5 +2,9 @@ import { Meteor } from 'meteor/meteor';
 
 Meteor.startup(() => 
 {
-	Retakes = new Mongo.Collection('retakesCollection');
+});
+
+Meteor.publish('theRetakes', function(){
+	var currentUserId = this.userId;
+	return Retakes.find({scheduledBy : currentUserId});
 });
