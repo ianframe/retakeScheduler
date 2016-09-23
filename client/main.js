@@ -4,11 +4,10 @@ import { Accounts } from 'meteor/accounts-base';
 
 import './main.html';
 
-Retakes = new Mongo.Collection('retakesCollection');
-
-
 if (Meteor.isClient)
 {
+	Meteor.subscribe('theRetakes');
+
 	Template.orderForm.events(
 	{
 		'submit form' : function(event)
@@ -32,7 +31,7 @@ if (Meteor.isClient)
 		{
 			var currentUserId = Meteor.userId();
 			if (currentUserId != null)
-				return Retakes.find({scheduledBy : currentUserId}, {sort: {unit: 1, standard: 1, name: -1} });
+				return Retakes.find({}, {sort: {unit: 1, standard: 1, name: -1} });
 		},
 
 		'selectedClass' : function()
