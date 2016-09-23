@@ -5,9 +5,9 @@ An online web app for AP CS students to reschedule their quiz retakes, view reso
 Alpha Version:
 + Contains user accounts
 + Users only see and schedule/remove retakes while logged in
++ Improved security with publish/subscribe access
 
 Improvements Needed:
-+ Publishing security
 + Names of units and standards
 + Account configuration to avoid duplicating name information
 + Responsive drop-down menus
