@@ -13,14 +13,10 @@ if (Meteor.isClient)
 		'submit form' : function(event)
 		{
 			event.preventDefault(); //stop the page from submitting and refreshing
-			var currentUserId = Meteor.userId();
 			var studentName = event.target.firstName.value + " " + event.target.lastName.value;
-			Retakes.insert({
-				scheduledBy : currentUserId,
-				name: studentName,
-				unit: event.target.unit.value,
-				standard: event.target.standard.value
-			});
+			var unit = event.target.unit.value;
+			var standard = event.target.standard.value;
+			Meteor.call('insertRetake', studentName, unit, standard);
 			document.getElementById("orderForm").reset();
 		}
 	});
@@ -62,8 +58,7 @@ if (Meteor.isClient)
 		{
 			if (confirm("Are you sure you wish to cancel?"))
 			{
-				var selectedRetake = Session.get('selectedRetake');;
-				Retakes.remove(selectedRetake);
+				Meteor.call('removeRetake', Session.get('selectedRetake'));
 			}
 		}
 	});

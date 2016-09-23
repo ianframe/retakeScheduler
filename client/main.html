@@ -48,6 +48,7 @@
       <li class="scheduledRetake {{selectedClass}}">Unit {{unit}} : {{standard}} - {{name}}</li>
     {{/each}}
       {{#if hasScheduledRetakes}}
+        <br>
         <input type="submit" class="cancelButton" value="Cancel Request">
       {{else}}
         <p>You don't have any retakes scheduled at the moment.</p>
