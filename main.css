@@ -1,0 +1,13 @@
+*{
+	font-family: "Verdana";
+
+}
+
+.selected{
+	background-color: LightCoral;
+}
+
+#homePageLink{
+	text-decoration: none;
+	color: inherit;
+}
