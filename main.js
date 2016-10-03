@@ -1,6 +1,6 @@
 import { Template } from 'meteor/templating';
 import { ReactiveVar } from 'meteor/reactive-var';
-//import { Accounts } from 'meteor/accounts-base';
+import { Accounts } from 'meteor/accounts-base';
 
 Retakes = new Mongo.Collection('retakes');
 
@@ -19,10 +19,16 @@ Router.route('/', {
 	template : 'home',
 	name: 'home'
 });
+Router.route('/adminHome',{
+	template : 'adminHome',
+	name : 'adminHome'
+});
 Router.route('/scheduleARetake', {
 	template: 'scheduleARetake',
 	name: 'scheduleARetake'
 });
+
+Roles.deleteRole('student');
 
 if (Meteor.isClient)
 {
@@ -33,7 +39,16 @@ if (Meteor.isClient)
 			Meteor.logout();
 			Router.go('home');
 		}
-	})
+	});
+
+	Template.navigation.helpers({
+		'getFirstName' : function()
+		{
+			var currentUserId = Meteor.userId();
+			if (currentUserId)
+				return Meteor.users.find({_id : currentUserId}).fetch()[0].profile.firstName;
+		}
+	});
 
 	Template.register.events({
 		'submit form' : function(event)
@@ -53,12 +68,13 @@ if (Meteor.isClient)
 			}, function(error){
 				if (error)
 					console.log(error.reason);
-				else
-					Router.go('/');
 			});
-			Router.go('home');
+			if (email == "ian.frame@hies.org")
+				Router.go('/adminHome');
+			else
+				Router.go('home');
 		}
-	})
+	});
 
 	Template.login.events({
 		'submit form' : function(event)
@@ -70,7 +86,10 @@ if (Meteor.isClient)
 			{
 				if(!error)
 				{
-					Router.go('home');
+					if (userEmail == "ian.frame@hies.org")
+						Router.go('adminHome');
+					else
+						Router.go('home');
 				}
 			});
 		}
@@ -139,13 +158,68 @@ if (Meteor.isClient)
 		{
 			var selectedRetake = Session.get('selectedRetake');
 			if(confirm("Are you sure you want to cancel this retake?"))
+			{
 				Retakes.remove({_id : selectedRetake});
+			}
 		}
 	});
+
+	Template.adminHome.helpers({
+		'listOfAllRetakes' : function()
+		{
+			return Retakes.find({}, {sort : {unit : 1, standard : 1}});
+		},
+		'hasScheduledRetakes' : function()
+		{
+			return (Retakes.find({}).count() != 0);
+		},
+		'selectedRetake' : function()
+		{
+			var retakeId = this._id;
+			var selectedRetake = Session.get('selectedRetake');
+			if (retakeId == selectedRetake)
+				return "selected";
+		}
+	});
+
+	Template.adminHome.events({
+		'click .scheduledRetake' : function()
+		{
+			var retakeId = this._id;
+			Session.set('selectedRetake', retakeId);
+		},
+		'click #adminRemoveRetake' : function()
+		{
+			var retakeId = Session.get('selectedRetake');
+			Retakes.remove({_id: retakeId});
+		}
+	})
 }
 
 if (Meteor.isServer)
 {
+	Meteor.startup(function(){
+		if (Meteor.roles.find().count() == 0)
+		{
+			Roles.createRole("student");
+			console.log("student role created");
+			Roles.createRole("teacher");
+			console.log("teacher role created");
+		}
+	});
 
+	Meteor.publish(null, function (){
+	  return Meteor.roles.find({})
+	});
+
+	/*
+	//is called whenever a new user is created. it returns the new user object, or throws an error to abort the creation
+	var id = Accounts.onCreateUser(function(options, user){
+		//copy the profile from the options passed as an argument
+		user.profile = options.profile;
+		user.profile.firstName = options.profile.firstName;
+		user.profile.lastName = options.profile.lastName;
+		return user;
+	});
+	*/
 }
-
