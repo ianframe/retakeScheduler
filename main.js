@@ -103,8 +103,9 @@ if (Meteor.isClient)
 			//gather user data to add to the database
 			var unit = $('[name="unit"]').val();
 			var standard = $('[name="standard"]').val();
-			var date = $('[name="date"]').val();
-			var time = $('[name="time"]').val();
+			var date = $('[name="dateText"]').val();
+			console.log(date);
+			console.log(typeof(date));
 			var user = Meteor.user();
 			var userFirstName = user.profile.firstName;
 			var userLastName = user.profile.lastName;
@@ -117,7 +118,6 @@ if (Meteor.isClient)
 				unit : unit,
 				standard : standard,
 				date : date,
-				time : time
 			});
 
 			$('#orderForm')[0].reset();
