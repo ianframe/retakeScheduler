@@ -1,9 +1,13 @@
 <template name="main">
-  <h1><a href="{{pathFor route='home'}}" id="homePageLink">RetakeScheduler</a></h1>
+  
+    <a href="{{pathFor route='home'}}" id="homePageLink">
+    <h1 class="text-left">WatchaKnow?</h1>
+    <h4 class="text-left"><small>An online tool to help you schedule a time to demonstrate your learning.</small></h4>
+    </a>
   <hr />
     {{> yield}}
   <hr />
-  <p class="footer">RetakeScheduler&copy;, Ian Frame, 2016.</p>
+  <p class="footer">WatchaKnow?&copy;, Ian Frame, 2016.</p>
 </template>
 
 <template name="home">
@@ -62,20 +66,16 @@
     <form method="post" id="orderForm">
       <div class="form-group">
         <label for="unit">Unit:</label>
-        <select class="form-control" name="unit">
-          <option value="3">3</option>
-          <option value="2">2</option>
-          <option value="1">1</option>
-          <option value="0">0</option>
+        <select class="form-control" name="unit" id="unit">
+          <option disabled selected>Select a Unit</option>
+          <option value="u2">Unit 2 - Class Definitions</option>
+          <option value="u1">Unit 1 - Introduction to Object-Oriented Programming</option>
+          <option value="u0">Unit 0 - Introduction to Computing</option>
         </select> 
         <br>
         <label for="standard">Standard:</label>
-        <select class="form-control" name="standard">
-          <option value="A">A</option>
-          <option value="B">B</option>
-          <option value="C">C</option>
-          <option value="D">D</option>
-          <option value="E">E</option>
+        <select class="form-control" name="standard" id="standard">
+          <option value="" disabled selected>Select a Standard</option>
         </select>
       </div>
  
