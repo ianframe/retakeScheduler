@@ -43,21 +43,40 @@
 
 <template name="register">
   <h2>Register An Account</h2>
-  <form name="register">
-    <p>First Name: <input type="text" name="firstName" autocomplete="off"></p>
-    <p>Last Name: <input type="text" name="lastName" autocomplete="off"></p>
-    <p>Email: <input type="email" name="email" autocomplete="off"></p>
-    <p>Password: <input type="password" name="password" autocomplete="off"></p>
-    <p><input type="submit" class="btn btn-primary" value="Register"></p>
+  <form class="form-group" name="register">
+    <label>First Name: </label><input type="text" class="form-control" name="firstName" autocomplete="off">
+    <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off">
+    <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off">
+    <label>Password: </label><input type="password" class="form-control" name="password" autocomplete="off"><br>
+    <input type="submit" class="btn btn-primary" value="Register">
   </form>
 </template>
 
 <template name="login">
   <h2>Login</h2>
-  <form name="login">
-    <p>Email: <input type="email" name="email"></p>
-    <p>Password: <input type="password" name="password"></p>
-    <p><input type="submit" class="btn btn-info" value="Login"></p>
+  <form class="form-group" name="login">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="input-group input-group-md">
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-envelope"></span>
+          </span>
+          <input type="email" class="form-control" name="email" placeholder="Email Address">
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="input-group input-group-md">
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-lock"></span>
+          </span>
+          <input type="password" class="form-control" name="password" placeholder="Password">
+        </div>
+      </div>
+    </div>
+    <br>
+    <input type="submit" class="btn btn-success" value="Login">
   </form>
 </template>
 
@@ -81,7 +100,7 @@
  
       <label for="date">Date:</label>
       <div class="row">
-        <div class='col-sm-6'>
+        <div class='col-md-3'>
           <div class="form-group">
               <div class='input-group date' id='datetimepicker5'>
                 <span class="input-group-addon">
@@ -110,9 +129,13 @@
 
 <template name="listOfRetakes">
   <h4>Your Scheduled Retakes</h4>
-  {{#each scheduledRetakes}}
-    <p class="scheduledRetake {{selectedRetake}}">Unit {{unit}} : {{standard}} | {{date}}</p>
-  {{/each}}
+  <div class="row">
+    <div class="col-md-3">
+    {{#each scheduledRetakes}}
+      <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+    {{/each}}
+    </div>
+  </div>
     {{#if hasScheduledRetakes}}
       <br>
       <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
