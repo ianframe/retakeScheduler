@@ -10,4 +10,5 @@ Pre-Alpha Version:
 
 Improvements Needed:
 + Improved security with publish/subscribe access
++ Roles functionality -- teacher and student
 + Text reminders
