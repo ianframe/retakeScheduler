@@ -1,20 +1,5 @@
-<template name="main">
-  
-    <a href="{{pathFor route='home'}}" id="homePageLink">
-    <h1 class="text-left">WatchaKnow?</h1>
-    <h4 class="text-left"><small>An online tool to help you schedule a time to demonstrate your learning.</small></h4>
-    </a>
-  <hr />
-    {{> yield}}
-  <hr />
-  <p class="footer">WatchaKnow?&copy;, Ian Frame, 2016.</p>
-</template>
-
-<template name="home">
-  {{> navigation}}
-</template>
-
 <template name="adminHome">
+  <h4>List of Scheduled Retakes</h4>
   {{#each listOfAllRetakes}}
     <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
   {{/each}}
@@ -25,60 +10,39 @@
       <p>There are no retakes scheduled at the moment.</p>
     {{/if}}
   <br>
-  <hr />
 </template>
 
-<template name="navigation">
-  {{#unless currentUser}}
-    <p><a href="{{pathFor route='register'}}">Register</a></p>
-    <p><a href="{{pathFor route='login'}}">Login</a></p>
-  {{else}}
-    <p><h4>Welcome, {{getFirstName}}!</h4></p>
-    <p><a href="{{pathFor route='scheduleARetake'}}">Schedule a Retake</a></p>
-    <p><a href="#" class="logout">Logout</a></p>
-    <hr />
-    {{> listOfRetakes}}
-  {{/unless}}
+<template name="home">
+  {{> navigation}}
 </template>
 
-<template name="register">
-  <h2>Register An Account</h2>
-  <form class="form-group" name="register">
-    <div class="row">
-      <div class="col-md-3">
-        <label>First Name: </label><input type="text" class="form-control" name="firstName" autocomplete="off">
-      </div>
+<template name="listOfRetakes">
+  <h4>Your Scheduled Retakes</h4>
+  <div class="row">
+    <div class="col-md-3">
+    {{#each scheduledRetakes}}
+      <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+    {{/each}}
     </div>
-    <div class="row">
-      <div class="col-md-3">
-        <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off">
-        </div>
-    </div>
-    <div class="row">
-      <div class="col-md-3">
-        <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off">
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-3">
-        <label>Password: </label><input type="password" class="form-control" name="password" autocomplete="off">
-        </div>
-    </div>
-    <br>
-    <input type="submit" class="btn btn-primary" value="Register">
-  </form>
+  </div>
+    {{#if hasScheduledRetakes}}
+      <br>
+      <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
+    {{else}}
+      <p>You don't have any retakes scheduled at the moment.</p>
+    {{/if}}
 </template>
 
 <template name="login">
   <h2>Login</h2>
-  <form class="form-group" name="login">
+  <form class="form-group login" name="login">
     <div class="row">
       <div class="col-md-6">
         <div class="input-group input-group-md">
           <span class="input-group-addon">
             <span class="glyphicon glyphicon-envelope"></span>
           </span>
-          <input type="email" class="form-control" name="email" placeholder="Email Address">
+          <input type="email" class="form-control" name="email" placeholder="Email Address" required>
         </div>
       </div>
     </div>
@@ -88,12 +52,71 @@
           <span class="input-group-addon">
             <span class="glyphicon glyphicon-lock"></span>
           </span>
-          <input type="password" class="form-control" name="password" placeholder="Password">
+          <input type="password" class="form-control" name="password" placeholder="Password" required>
         </div>
       </div>
     </div>
     <br>
     <input type="submit" class="btn btn-success" value="Login">
+  </form>
+</template>
+
+<template name="main">
+    <a href="{{pathFor route='home'}}" id="homePageLink">
+    <h1 class="text-left">WatchaKnow?</h1>
+    <h4 class="text-left"><small>An online tool to help you schedule a time to demonstrate your learning.</small></h4>
+    </a>
+  <hr />
+    {{> yield}}
+    <nav class="navbar navbar-default navbar-fixed-bottom navbar-left">
+      <div class="container">
+        <hr />WatchaKnow?&copy;, Ian Frame, 2016.
+      </div>
+    </nav>
+</template>
+
+<template name="navigation">
+  {{#unless currentUser}}
+    <p><a href="{{pathFor route='register'}}">Register</a></p>
+    <p><a href="{{pathFor route='login'}}">Login</a></p>
+  {{else}}
+    <h4>Welcome, {{getFirstName}}!</h4>
+    {{#if isInRole 'admin'}}
+      <p><a href="{{pathFor route='adminHome'}}">List of Retakes</a></p>
+       <p><a href="#" class="logout">Logout</a></p>
+    {{else}}
+      <p><a href="{{pathFor route='scheduleARetake'}}">Schedule a Retake</a></p>
+      <p><a href="#" class="logout">Logout</a></p>
+      {{> listOfRetakes}}
+    {{/if}}
+  {{/unless}}
+</template>
+
+<template name="register">
+  <h2>Register An Account</h2>
+  <form class="form-group register" name="register">
+    <div class="row">
+      <div class="col-md-3">
+        <label>First Name: </label><input type="text" class="form-control" name="firstName" autocomplete="off" required>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off" required>
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off" placeholder="any valid email address" required>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Password: </label><input type="password" class="form-control" name="password" autocomplete="off" placeholder="minimum of 6 characters" required>
+        </div>
+    </div>
+    <br>
+    <input type="submit" class="btn btn-primary" value="Register">
   </form>
 </template>
 
@@ -150,21 +173,4 @@
       <input type="submit" class="btn btn-primary" value="Schedule">
     </form>
   {{/if}}
-</template>
-
-<template name="listOfRetakes">
-  <h4>Your Scheduled Retakes</h4>
-  <div class="row">
-    <div class="col-md-3">
-    {{#each scheduledRetakes}}
-      <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
-    {{/each}}
-    </div>
-  </div>
-    {{#if hasScheduledRetakes}}
-      <br>
-      <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
-    {{else}}
-      <p>You don't have any retakes scheduled at the moment.</p>
-    {{/if}}
 </template>

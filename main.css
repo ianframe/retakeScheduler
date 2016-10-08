@@ -11,3 +11,12 @@
 	text-decoration: none;
 	color: inherit;
 }
+
+body { 
+	padding-bottom: 70px;
+	text-align: left;
+}
+
+input.error{
+	background-color: rgb(255, 231, 231);
+}

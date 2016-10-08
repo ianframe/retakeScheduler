@@ -21,14 +21,24 @@ Router.route('/', {
 });
 Router.route('/adminHome',{
 	template : 'adminHome',
-	name : 'adminHome'
+	name : 'adminHome',
+
+	onBeforeAction : function()
+	{
+		let currentUserId = Meteor.userId();
+		if (Roles.userIsInRole(currentUserId, 'admin'))
+			this.next();
+		else
+		{
+			alert("You don't have permission to view that page.");
+			this.render("home");
+		}
+	}
 });
 Router.route('/scheduleARetake', {
 	template: 'scheduleARetake',
 	name: 'scheduleARetake'
 });
-
-Roles.deleteRole('student');
 
 Meteor.methods({
 		'insertRetake' : function(userFirstName, userLastName, unit, standard, date)
@@ -54,8 +64,150 @@ Meteor.methods({
 
 if (Meteor.isClient)
 {
-
 	Meteor.subscribe('theRetakes');
+
+	$.validator.setDefaults({
+		rules : {
+			password :
+			{
+				required : true,
+				minlength : 6
+			},
+			email :
+			{
+				required : true,
+				email : true
+			}
+		},
+		messages : {
+			password : 
+			{
+				required : "You must provide a password.",
+				minlength : "Your password must contain at least 6 characters."
+			},
+			email : 
+			{
+				required : "You must provide an email address.",
+				email : "You must provide a valid email address."
+			}
+
+		}
+	});
+
+	Template.adminHome.events({
+		'click .scheduledRetake' : function()
+		{
+			var retakeId = this._id;
+			Session.set('selectedRetake', retakeId);
+		},
+		'click #adminRemoveRetake' : function()
+		{
+			var retakeId = Session.get('selectedRetake');
+			Retakes.remove({_id: retakeId});
+		}
+	});
+
+	Template.adminHome.helpers({
+		'listOfAllRetakes' : function()
+		{
+			return Retakes.find({}, {sort : {unit : 1, standard : 1}});
+		},
+		'hasScheduledRetakes' : function()
+		{
+			return (Retakes.find({}).count() != 0);
+		},
+		'selectedRetake' : function()
+		{
+			var retakeId = this._id;
+			var selectedRetake = Session.get('selectedRetake');
+			if (retakeId == selectedRetake)
+				return "selected";
+		}
+	});
+
+	Template.listOfRetakes.events({
+		'click .scheduledRetake' : function()
+		{
+			var retakeId = this._id;
+			Session.set('selectedRetake', retakeId);
+		},
+		'click .cancelRetake' : function()
+		{
+			var selectedRetake = Session.get('selectedRetake');
+			if(confirm("Are you sure you want to cancel this retake?"))
+			{
+				Meteor.call('removeRetake', selectedRetake);
+			}
+		}
+	});
+
+	Template.listOfRetakes.helpers({
+		'scheduledRetakes' : function()
+		{
+			var currentUserId = Meteor.userId();
+			return Retakes.find({createdBy : currentUserId}, {sort: {date : 1, standard : 1}});
+		},
+		'hasScheduledRetakes' : function()
+		{
+			var currentUserId = Meteor.userId();
+			if (Retakes.find({createdBy : currentUserId}).count() != 0)
+				return true;
+			else
+				return false;
+		},
+		'selectedRetake' : function()
+		{
+			var retakeId = this._id;
+			var selectedRetake = Session.get('selectedRetake');
+			if (retakeId == selectedRetake)
+				return "selected";
+		}
+	});
+
+	Template.login.events({
+		'submit form' : function(event)
+		{
+			event.preventDefault();
+		}
+	});
+		
+	//when the template is inserted into the DOM
+	Template.login.onRendered(function(){
+		var validator = $('.login').validate({
+			submitHandler : function(event)
+			{
+				var userEmail = $('[name="email"]').val();
+				var userPassword = $('[name="password"]').val();
+				Meteor.loginWithPassword(userEmail, userPassword, function(error)
+				{
+					if (error)
+					{
+						if (error.reason == "User not found")
+						{
+							validator.showErrors({
+								email : "This is not a registered email address."
+							});
+						}
+						else if (error.reason == "Incorrect password")
+						{
+							validator.showErrors({
+								password : "That is not the correct password."
+							});
+						}
+					}
+
+					else
+					{
+						if (userEmail == "ian.frame@hies.org")
+							Router.go('adminHome');
+						else
+							Router.go('home');
+					}
+				});
+			}
+		});
+	});
+
 
 	Template.main.events({
 		'click .logout' : function(event)
@@ -79,45 +231,44 @@ if (Meteor.isClient)
 		'submit form' : function(event)
 		{
 			event.preventDefault();
-			var firstName = $('[name="firstName"]').val();
-			var lastName = $('[name="lastName"]').val();
-			var email = $('[name="email"]').val();
-			var password = $('[name="password"]').val();
-			Accounts.createUser({
-				email : email, 
-				password : password,
-				profile : {
-					firstName : firstName,
-					lastName : lastName
-				}
-			}, function(error){
-				if (error)
-					console.log(error.reason);
-			});
-			if (email == "ian.frame@hies.org")
-				Router.go('/adminHome');
-			else
-				Router.go('home');
 		}
 	});
 
-	Template.login.events({
-		'submit form' : function(event)
-		{
-			event.preventDefault();
-			var userEmail = $('[name="email"]').val();
-			var userPassword = $('[name="password"]').val();
-			Meteor.loginWithPassword(userEmail, userPassword, function(error)
+	Template.register.onRendered(function(){
+		var validator = $('.register').validate({
+			submitHandler : function(event)
 			{
-				if(!error)
-				{
-					if (userEmail == "ian.frame@hies.org")
-						Router.go('adminHome');
+				var firstName = $('[name="firstName"]').val();
+				var lastName = $('[name="lastName"]').val();
+				var email = $('[name="email"]').val();
+				var password = $('[name="password"]').val();
+				Accounts.createUser({
+					email : email, 
+					password : password,
+					profile : {
+						firstName : firstName,
+						lastName : lastName
+					}
+				}, function(error){
+					if (error)
+					{
+						if (error.reason == "Email already exists.")
+						{
+							validator.showErrors({
+								email : "An account for that email address has already been created"
+							});
+						}
+					}
 					else
-						Router.go('home');
-				}
-			});
-		}
+					{
+						if (email == "ian.frame@hies.org")
+							Router.go('/adminHome');
+						else
+							Router.go('home');
+					}
+				});
+			}
+		});
 	});
 
 	Template.scheduleARetake.events({
@@ -150,85 +301,14 @@ if (Meteor.isClient)
 			Router.go('home');
 		}
 	});
-
-	Template.listOfRetakes.helpers({
-		'scheduledRetakes' : function()
-		{
-			var currentUserId = Meteor.userId();
-			return Retakes.find({createdBy : currentUserId}, {sort: {date : 1, standard : 1}});
-		},
-		'hasScheduledRetakes' : function()
-		{
-			var currentUserId = Meteor.userId();
-			if (Retakes.find({createdBy : currentUserId}).count() != 0)
-				return true;
-			else
-				return false;
-		},
-		'selectedRetake' : function()
-		{
-			var retakeId = this._id;
-			var selectedRetake = Session.get('selectedRetake');
-			if (retakeId == selectedRetake)
-				return "selected";
-		}
-	});
-
-	Template.listOfRetakes.events({
-		'click .scheduledRetake' : function()
-		{
-			var retakeId = this._id;
-			Session.set('selectedRetake', retakeId);
-		},
-		'click .cancelRetake' : function()
-		{
-			var selectedRetake = Session.get('selectedRetake');
-			if(confirm("Are you sure you want to cancel this retake?"))
-			{
-				Meteor.call('removeRetake', selectedRetake);
-			}
-		}
-	});
-
-	Template.adminHome.helpers({
-		'listOfAllRetakes' : function()
-		{
-			return Retakes.find({}, {sort : {unit : 1, standard : 1}});
-		},
-		'hasScheduledRetakes' : function()
-		{
-			return (Retakes.find({}).count() != 0);
-		},
-		'selectedRetake' : function()
-		{
-			var retakeId = this._id;
-			var selectedRetake = Session.get('selectedRetake');
-			if (retakeId == selectedRetake)
-				return "selected";
-		}
-	});
-
-	Template.adminHome.events({
-		'click .scheduledRetake' : function()
-		{
-			var retakeId = this._id;
-			Session.set('selectedRetake', retakeId);
-		},
-		'click #adminRemoveRetake' : function()
-		{
-			var retakeId = Session.get('selectedRetake');
-			Retakes.remove({_id: retakeId});
-		}
-	});
 }
 
 if (Meteor.isServer)
 {
 	Meteor.publish('theRetakes', function(){
 		let currentUserId = this.userId;
-		//check if ian is logged in
-		let framedog = Meteor.users.findOne({"emails.0.address" : "ian.frame@hies.org"});
-		if (framedog && framedog._id == currentUserId)
+
+		if (Roles.userIsInRole(this.userId, 'admin'))
 			return Retakes.find({});
 		else
 			return Retakes.find({createdBy : currentUserId});
