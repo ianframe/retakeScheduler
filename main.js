@@ -30,8 +30,33 @@ Router.route('/scheduleARetake', {
 
 Roles.deleteRole('student');
 
+Meteor.methods({
+		'insertRetake' : function(userFirstName, userLastName, unit, standard, date)
+		{
+			var currentUserId = this.userId;
+			//schedule a retake and add it to the database
+			Retakes.insert({
+				createdBy : currentUserId,
+				firstName : userFirstName,
+				lastName : userLastName,
+				unit : unit,
+				standard : standard,
+				date : date,
+			});
+		},
+
+		'removeRetake' : function(selectedRetake)
+		{
+			var currentUserId = this.userId;
+			Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
+		},
+});
+
 if (Meteor.isClient)
 {
+
+	Meteor.subscribe('theRetakes');
+
 	Template.main.events({
 		'click .logout' : function(event)
 		{
@@ -47,7 +72,7 @@ if (Meteor.isClient)
 			var currentUserId = Meteor.userId();
 			if (currentUserId)
 				return Meteor.users.find({_id : currentUserId}).fetch()[0].profile.firstName;
-		}
+		},
 	});
 
 	Template.register.events({
@@ -111,28 +136,16 @@ if (Meteor.isClient)
 
 		'submit form' : function(event)
 		{
-			var userId = Meteor.userId();
 			event.preventDefault();
 			//gather user data to add to the database
 			var unit = $('[name="unit"]').val();
 			var standard = $('[name="standard"]').val();
 			var date = $('[name="dateText"]').val();
-			console.log(date);
-			console.log(typeof(date));
 			var user = Meteor.user();
 			var userFirstName = user.profile.firstName;
 			var userLastName = user.profile.lastName;
-
-			//schedule a retake and add it to the database
-			Retakes.insert({
-				createdBy : userId,
-				firstName : userFirstName,
-				lastName : userLastName,
-				unit : unit,
-				standard : standard,
-				date : date,
-			});
-
+			//pass client-side data and pass it into the server-side insertion
+			Meteor.call('insertRetake', userFirstName, userLastName, unit, standard, date);
 			$('#orderForm')[0].reset();
 			Router.go('home');
 		}
@@ -142,7 +155,7 @@ if (Meteor.isClient)
 		'scheduledRetakes' : function()
 		{
 			var currentUserId = Meteor.userId();
-			return Retakes.find({createdBy : currentUserId}, {sort: {unit : 1, standard : 1}});
+			return Retakes.find({createdBy : currentUserId}, {sort: {date : 1, standard : 1}});
 		},
 		'hasScheduledRetakes' : function()
 		{
@@ -172,7 +185,7 @@ if (Meteor.isClient)
 			var selectedRetake = Session.get('selectedRetake');
 			if(confirm("Are you sure you want to cancel this retake?"))
 			{
-				Retakes.remove({_id : selectedRetake});
+				Meteor.call('removeRetake', selectedRetake);
 			}
 		}
 	});
@@ -206,33 +219,28 @@ if (Meteor.isClient)
 			var retakeId = Session.get('selectedRetake');
 			Retakes.remove({_id: retakeId});
 		}
-	})
+	});
 }
 
 if (Meteor.isServer)
 {
-	Meteor.startup(function(){
-		if (Meteor.roles.find().count() == 0)
-		{
-			Roles.createRole("student");
-			console.log("student role created");
-			Roles.createRole("teacher");
-			console.log("teacher role created");
-		}
+	Meteor.publish('theRetakes', function(){
+		let currentUserId = this.userId;
+		//check if ian is logged in
+		let framedog = Meteor.users.findOne({"emails.0.address" : "ian.frame@hies.org"});
+		if (framedog && framedog._id == currentUserId)
+			return Retakes.find({});
+		else
+			return Retakes.find({createdBy : currentUserId});
 	});
 
-	Meteor.publish(null, function (){
-	  return Meteor.roles.find({})
-	});
 
-	/*
-	//is called whenever a new user is created. it returns the new user object, or throws an error to abort the creation
-	var id = Accounts.onCreateUser(function(options, user){
-		//copy the profile from the options passed as an argument
+	Accounts.onCreateUser(function(options, user){
 		user.profile = options.profile;
-		user.profile.firstName = options.profile.firstName;
-		user.profile.lastName = options.profile.lastName;
-		return user;
+		if (user.emails[0].address == "ian.frame@hies.org")
+			user.roles = ['student', 'admin'];
+		else
+			user.roles = ['student'];
+	  return user;
 	});
-	*/
 }

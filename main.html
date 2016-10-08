@@ -16,7 +16,7 @@
 
 <template name="adminHome">
   {{#each listOfAllRetakes}}
-    <p class="scheduledRetake {{selectedRetake}}">Unit {{unit}} : {{standard}} | {{date}} | {{time}} | {{firstName}} {{lastName}}</p>
+    <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
   {{/each}}
   {{#if hasScheduledRetakes}}
       <br>
@@ -44,10 +44,27 @@
 <template name="register">
   <h2>Register An Account</h2>
   <form class="form-group" name="register">
-    <label>First Name: </label><input type="text" class="form-control" name="firstName" autocomplete="off">
-    <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off">
-    <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off">
-    <label>Password: </label><input type="password" class="form-control" name="password" autocomplete="off"><br>
+    <div class="row">
+      <div class="col-md-3">
+        <label>First Name: </label><input type="text" class="form-control" name="firstName" autocomplete="off">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off">
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <label>Password: </label><input type="password" class="form-control" name="password" autocomplete="off">
+        </div>
+    </div>
+    <br>
     <input type="submit" class="btn btn-primary" value="Register">
   </form>
 </template>
@@ -85,17 +102,25 @@
     <form method="post" id="orderForm">
       <div class="form-group">
         <label for="unit">Unit:</label>
+        <div class="row">
+          <div class="col-md-4">
         <select class="form-control" name="unit" id="unit">
           <option disabled selected>Select a Unit</option>
           <option value="u2">Unit 2 - Class Definitions</option>
           <option value="u1">Unit 1 - Introduction to Object-Oriented Programming</option>
           <option value="u0">Unit 0 - Introduction to Computing</option>
         </select> 
+        </div>
+      </div>
         <br>
         <label for="standard">Standard:</label>
-        <select class="form-control" name="standard" id="standard">
-          <option value="" disabled selected>Select a Standard</option>
-        </select>
+        <div class="row">
+          <div class="col-md-4">
+            <select class="form-control" name="standard" id="standard">
+              <option value="" disabled selected>Select a Standard</option>
+            </select>
+          </div>
+        </div>
       </div>
  
       <label for="date">Date:</label>
