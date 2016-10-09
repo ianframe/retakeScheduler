@@ -1,14 +1,18 @@
 <template name="adminHome">
   <h4>List of Scheduled Retakes</h4>
-  {{#each listOfAllRetakes}}
-    <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
-  {{/each}}
+  <hr />
+  <div class="row">
+    <div class="col-md-4">
+      {{#each listOfAllRetakes}}
+        <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
+      {{/each}}
+    </div>
+  </div>
   {{#if hasScheduledRetakes}}
-      <br>
-      <input type="submit" id="adminRemoveRetake" class="removeRetake btn btn-danger" value="Remove">
-    {{else}}
-      <p>There are no retakes scheduled at the moment.</p>
-    {{/if}}
+    <input type="submit" id="adminRemoveRetake" class="removeRetake btn btn-danger" value="Remove">
+  {{else}}
+    <p>There are no retakes scheduled at the moment.</p>
+  {{/if}}
   <br>
 </template>
 
@@ -17,20 +21,29 @@
 </template>
 
 <template name="listOfRetakes">
-  <h4>Your Scheduled Retakes</h4>
-  <div class="row">
-    <div class="col-md-3">
-    {{#each scheduledRetakes}}
-      <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
-    {{/each}}
+  {{#unless isInRole 'admin'}}
+    <h4>Your Scheduled Retakes</h4>
+    <hr />
+    <div class="row">
+      <div class="col-md-3">
+      {{#each scheduledRetakes}}
+        <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+      {{/each}}
+      </div>
     </div>
-  </div>
-    {{#if hasScheduledRetakes}}
-      <br>
-      <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
+      {{#if hasScheduledRetakes}}
+        <br>
+        <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
+      {{else}}
+        <p>You don't have any retakes scheduled at the moment.</p>
+      {{/if}}
     {{else}}
-      <p>You don't have any retakes scheduled at the moment.</p>
-    {{/if}}
+      <p>{{numberOfRetakesStatement}}</p>
+    {{/unless}}
+</template>
+
+<template name="loading">
+    <h2>Loading...</h2>
 </template>
 
 <template name="login">
@@ -56,40 +69,92 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col-md-6">
+        <p><a href="#" id="forgotPasswordButton">Forgot Password?</a></p>
+      </div>
+    </div>
     <br>
     <input type="submit" class="btn btn-success" value="Login">
   </form>
 </template>
 
 <template name="main">
-    <a href="{{pathFor route='home'}}" id="homePageLink">
-    <h1 class="text-left">WatchaKnow?</h1>
-    <h4 class="text-left"><small>An online tool to help you schedule a time to demonstrate your learning.</small></h4>
-    </a>
-  <hr />
+  <div class="container-fluid">
+    <header>
+      {{> nav}}
+    </header>
     {{> yield}}
-    <nav class="navbar navbar-default navbar-fixed-bottom navbar-left">
-      <div class="container">
-        <hr />WatchaKnow?&copy;, Ian Frame, 2016.
+  </div>
+
+  <nav class="navbar navbar-default navbar-fixed-bottom navbar-left">
+    <div class="container">
+      <hr />WatchaKnow?&copy;, Ian Frame, 2016.
+    </div>
+  </nav>
+</template>
+
+<template name="nav">
+   <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        {{> navBrand}}
       </div>
-    </nav>
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          {{#unless currentUser}}
+          {{/unless}}
+          {{#if currentUser}}
+            {{#if isInRole 'admin'}}
+              <li>
+              <a href="{{pathFor 'adminHome'}}">List of Retakes</a>
+              </li>
+            {{else}}
+              <li>
+                <a href="{{pathFor 'scheduleARetake'}}">Schedule a Retake</a>
+              </li>
+            {{/if}}
+          {{/if}}
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          {{#unless currentUser}}
+            <li>
+              <a href="{{pathFor 'register'}}">Register</a>
+            </li>
+            <li>
+              <a id="loginButton" href="{{pathFor 'login'}}">Login</a>
+              </li>
+            {{else}}
+              <li>
+              <a id="logoutButton">Logout</a>
+              </li>
+            {{/unless}}
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+</template>
+
+<template name="navBrand">
+  <a class="navbar-brand" href="{{pathFor 'home'}}">WatchaKnow?</a>
 </template>
 
 <template name="navigation">
-  {{#unless currentUser}}
-    <p><a href="{{pathFor route='register'}}">Register</a></p>
-    <p><a href="{{pathFor route='login'}}">Login</a></p>
-  {{else}}
-    <h4>Welcome, {{getFirstName}}!</h4>
-    {{#if isInRole 'admin'}}
-      <p><a href="{{pathFor route='adminHome'}}">List of Retakes</a></p>
-       <p><a href="#" class="logout">Logout</a></p>
-    {{else}}
-      <p><a href="{{pathFor route='scheduleARetake'}}">Schedule a Retake</a></p>
-      <p><a href="#" class="logout">Logout</a></p>
+  {{#if currentUser}}
+    <h2>Welcome, {{getFirstName}}!</h2>
       {{> listOfRetakes}}
-    {{/if}}
-  {{/unless}}
+  {{else}}
+    <h4>An online scheduler for you to demonstrate your learning in AP Computer Science. Register or
+      login to get started!</h4>
+  {{/if}}
 </template>
 
 <template name="register">

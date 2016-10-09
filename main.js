@@ -5,7 +5,8 @@ import { Accounts } from 'meteor/accounts-base';
 Retakes = new Mongo.Collection('retakes');
 
 Router.configure({
-	layoutTemplate : 'main'
+	layoutTemplate : 'main',
+	loadingTemplate: 'loading'
 });
 Router.route('/register',{
 	template : 'register',
@@ -27,11 +28,10 @@ Router.route('/adminHome',{
 	{
 		let currentUserId = Meteor.userId();
 		if (Roles.userIsInRole(currentUserId, 'admin'))
-			this.next();
+			this.render('adminHome');
 		else
 		{
-			alert("You don't have permission to view that page.");
-			this.render("home");
+			this.render('home');
 		}
 	}
 });
@@ -45,6 +45,16 @@ Meteor.methods({
 		{
 			var currentUserId = this.userId;
 			//schedule a retake and add it to the database
+			if (!Meteor.userId())
+			{
+				throw new Meteor.Error("not-logged-in", "You must login before scheduling a retake.");
+			}
+			check(userFirstName, String);
+			check(userLastName, String);
+			check(unit, String);
+			check(standard, String);
+			check(date, String);
+			
 			Retakes.insert({
 				createdBy : currentUserId,
 				firstName : userFirstName,
@@ -58,7 +68,10 @@ Meteor.methods({
 		'removeRetake' : function(selectedRetake)
 		{
 			var currentUserId = this.userId;
-			Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
+			if (Roles.userIsInRole(this.userId, 'admin'))
+				Retakes.remove({_id : selectedRetake});
+			else
+				Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
 		},
 });
 
@@ -103,7 +116,7 @@ if (Meteor.isClient)
 		'click #adminRemoveRetake' : function()
 		{
 			var retakeId = Session.get('selectedRetake');
-			Retakes.remove({_id: retakeId});
+			Meteor.call('removeRetake', retakeId);
 		}
 	});
 
@@ -122,7 +135,7 @@ if (Meteor.isClient)
 			var selectedRetake = Session.get('selectedRetake');
 			if (retakeId == selectedRetake)
 				return "selected";
-		}
+		},
 	});
 
 	Template.listOfRetakes.events({
@@ -161,6 +174,18 @@ if (Meteor.isClient)
 			var selectedRetake = Session.get('selectedRetake');
 			if (retakeId == selectedRetake)
 				return "selected";
+		},
+		'numOfRetakes' : function()
+		{
+			return Retakes.find().count();
+		},
+		'numberOfRetakesStatement' : function()
+		{
+			let numOfRetakes = Retakes.find().count();
+			if (numOfRetakes == 1)
+				return "There is 1 retake scheduled.";
+			else
+				return "There are " + numOfRetakes + " retakes scheduled.";
 		}
 	});
 
@@ -168,6 +193,11 @@ if (Meteor.isClient)
 		'submit form' : function(event)
 		{
 			event.preventDefault();
+		},
+		'click #forgotPasswordButton' : function(event)
+		{
+			event.preventDefault();
+			alert("This feature is still in development. :)");
 		}
 	});
 		
@@ -213,6 +243,14 @@ if (Meteor.isClient)
 		'click .logout' : function(event)
 		{
 			event.preventDefault();
+			Meteor.logout();
+			Router.go('home');
+		}
+	});
+
+	Template.nav.events({
+		'click #logoutButton' : function()
+		{
 			Meteor.logout();
 			Router.go('home');
 		}
@@ -282,7 +320,6 @@ if (Meteor.isClient)
 				else if (unitChangedTo == "u0")
 					$('#standard').html("<option value='0b'>B - Binary Number System</option><option value='0C'>C - Signed Quiz Policy</option>")
 			});
-
 		},
 
 		'submit form' : function(event)
@@ -313,6 +350,19 @@ if (Meteor.isServer)
 		else
 			return Retakes.find({createdBy : currentUserId});
 	});
+
+	Meteor.users.allow({
+
+		remove : function(userId , doc)
+		{
+			if(Roles.userIsInRole(userId,'admin'))
+				return true;
+			else
+				return false;
+		}
+	});
+
+	console.log(Meteor.users.find().fetch());
 
 
 	Accounts.onCreateUser(function(options, user){
