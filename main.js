@@ -72,7 +72,7 @@ Meteor.methods({
 				Retakes.remove({_id : selectedRetake});
 			else
 				Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
-		},
+		}
 });
 
 if (Meteor.isClient)
@@ -197,7 +197,9 @@ if (Meteor.isClient)
 		'click #forgotPasswordButton' : function(event)
 		{
 			event.preventDefault();
-			alert("This feature is still in development. :)");
+			let email = $('[name="email"]').val();
+			Accounts.forgotPassword({email : email});
+			alert("This feature is still in development. :) Talk to Frame about resetting your account.");
 		}
 	});
 		
@@ -362,9 +364,6 @@ if (Meteor.isServer)
 		}
 	});
 
-	console.log(Meteor.users.find().fetch());
-
-
 	Accounts.onCreateUser(function(options, user){
 		user.profile = options.profile;
 		if (user.emails[0].address == "ian.frame@hies.org")
@@ -372,5 +371,9 @@ if (Meteor.isServer)
 		else
 			user.roles = ['student'];
 	  return user;
+	});
+
+	Email.send({
+	  from: "ianframe3@gmail.com"
 	});
 }
