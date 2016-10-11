@@ -396,7 +396,5 @@ if (Meteor.isServer)
 	});
 
 	Email.send({
-	  from: "support@watchaknow.meteor.com",
-	  to: "ianframe3@gmail.com"
 	});
 }
