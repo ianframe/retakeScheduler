@@ -86,6 +86,12 @@ if (Meteor.isClient)
 				required : true,
 				minlength : 6
 			},
+			confirmPassword :
+			{
+				required : true,
+				minlength : 6,
+				equalTo : "#password"
+			},
 			email :
 			{
 				required : true,
@@ -97,6 +103,11 @@ if (Meteor.isClient)
 			{
 				required : "You must provide a password.",
 				minlength : "Your password must contain at least 6 characters."
+			},
+			confirmPassword :
+			{
+				required : "Please confirm your password.",
+				equalTo : "Passwords must match."
 			},
 			email : 
 			{
@@ -230,10 +241,15 @@ if (Meteor.isClient)
 
 					else
 					{
-						if (userEmail == "ian.frame@hies.org")
+						if (userEmail == "ian.frame@hies.org"){
 							Router.go('adminHome');
-						else
+							Bert.alert('Login success!', 'success', 'growl-top-right');
+						}
+							
+						else{
 							Router.go('home');
+							Bert.alert('Login success!', 'success', 'growl-top-right');
+						}
 					}
 				});
 			}
@@ -282,6 +298,7 @@ if (Meteor.isClient)
 				var lastName = $('[name="lastName"]').val();
 				var email = $('[name="email"]').val();
 				var password = $('[name="password"]').val();
+				var confirmPassword = $('[name="confirmPassword"]').val();
 				Accounts.createUser({
 					email : email, 
 					password : password,
@@ -301,10 +318,15 @@ if (Meteor.isClient)
 					}
 					else
 					{
-						if (email == "ian.frame@hies.org")
+						if (email == "ian.frame@hies.org"){
 							Router.go('/adminHome');
-						else
+							Bert.alert('Successful registration!', 'success', 'growl-top-right');
+						}
+							
+						else{
 							Router.go('home');
+							Bert.alert('Successful registration!', 'success', 'growl-top-right');
+						}
 					}
 				});
 			}
@@ -374,6 +396,7 @@ if (Meteor.isServer)
 	});
 
 	Email.send({
-	  from: "ianframe3@gmail.com"
+	  from: "support@watchaknow.meteor.com",
+	  to: "ianframe3@gmail.com"
 	});
 }
