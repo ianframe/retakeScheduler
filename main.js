@@ -40,6 +40,22 @@ Router.route('/scheduleARetake', {
 	name: 'scheduleARetake'
 });
 
+Router.route('/listOfRetakeRequests',{
+	template: 'listOfRetakeRequests',
+	name: 'listOfRetakeRequests',
+
+	onBeforeAction : function()
+	{
+		let currentUserId = Meteor.userId();
+		if (Roles.userIsInRole(currentUserId, 'admin'))
+			this.render('listOfRetakeRequests');
+		else
+		{
+			this.render('home');
+		}
+	}
+});
+
 Meteor.methods({
 		'insertRetake' : function(userFirstName, userLastName, unit, standard, date)
 		{
@@ -62,6 +78,7 @@ Meteor.methods({
 				unit : unit,
 				standard : standard,
 				date : date,
+				status : 'requested'
 			});
 		},
 
@@ -132,9 +149,9 @@ if (Meteor.isClient)
 	});
 
 	Template.adminHome.helpers({
-		'listOfAllRetakes' : function()
+		'listOfAllApprovedRetakes' : function()
 		{
-			return Retakes.find({}, {sort : {unit : 1, standard : 1}});
+			return Retakes.find({status : 'approved'}, {sort : {date : 1, standard : 1}});
 		},
 		'hasScheduledRetakes' : function()
 		{
@@ -166,10 +183,15 @@ if (Meteor.isClient)
 	});
 
 	Template.listOfRetakes.helpers({
-		'scheduledRetakes' : function()
+		'getscheduledApprovedRetakes' : function()
 		{
 			var currentUserId = Meteor.userId();
-			return Retakes.find({createdBy : currentUserId}, {sort: {date : 1, standard : 1}});
+			return Retakes.find({createdBy : currentUserId, status : 'approved'}, {sort: {date : 1, standard : 1}});
+		},
+		'getscheduledRequestedRetakes' : function()
+		{
+			var currentUserId = Meteor.userId();
+			return Retakes.find({createdBy : currentUserId, status : 'requested'}, {sort: {date : 1, standard : 1}});
 		},
 		'hasScheduledRetakes' : function()
 		{
@@ -197,6 +219,26 @@ if (Meteor.isClient)
 				return "There is 1 retake scheduled.";
 			else
 				return "There are " + numOfRetakes + " retakes scheduled.";
+		}
+	});
+
+	Template.listOfRetakeRequests.events({
+		'click #approveRequest' : function(event)
+		{
+			event.preventDefault();
+			Retakes.update(this._id, {$set : {status : 'approved'}});
+		},
+		'click #rejectRequest' : function(event)
+		{
+			event.preventDefault();
+			Retakes.update(this._id, {$set : {status : 'rejected'}});
+		}
+	})
+
+	Template.listOfRetakeRequests.helpers({
+		'getListOfRetakeRequests' : function()
+		{
+			return Retakes.find({status : 'requested'}, {sort : {date : 1}});
 		}
 	});
 
@@ -385,6 +427,16 @@ if (Meteor.isServer)
 				return false;
 		}
 	});
+
+	Retakes.allow({
+		update : function(userId, doc)
+		{
+			if(Roles.userIsInRole(userId,'admin'))
+				return true;
+			else
+				return false;
+		}
+	})
 
 	Accounts.onCreateUser(function(options, user){
 		user.profile = options.profile;

@@ -1,9 +1,9 @@
 <template name="adminHome">
-  <h4>List of Scheduled Retakes</h4>
+  <h4>List of Approved Scheduled Retakes</h4>
   <hr />
   <div class="row">
     <div class="col-md-4">
-      {{#each listOfAllRetakes}}
+      {{#each listOfAllApprovedRetakes}}
         <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
       {{/each}}
     </div>
@@ -22,24 +22,47 @@
 
 <template name="listOfRetakes">
   {{#unless isInRole 'admin'}}
-    <h4>Your Scheduled Retakes</h4>
+    <h4>Your Approved Scheduled Retakes</h4>
     <hr />
     <div class="row">
       <div class="col-md-3">
-      {{#each scheduledRetakes}}
+      {{#each getscheduledApprovedRetakes}}
         <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
       {{/each}}
       </div>
     </div>
-      {{#if hasScheduledRetakes}}
-        <br>
-        <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
-      {{else}}
-        <p>You don't have any retakes scheduled at the moment.</p>
-      {{/if}}
+    <hr />
+    <h4>Your Requested Scheduled Retakes</h4>
+    <div class="row">
+      <div class="col-md-3">
+        {{#each getscheduledRequestedRetakes}}
+        <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+        {{/each}}
+        {{#if hasScheduledRetakes}}
+          <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
+        {{/if}}
+      </div>
+    </div>
     {{else}}
       <p>{{numberOfRetakesStatement}}</p>
     {{/unless}}
+</template>
+
+<template name="listOfRetakeRequests">
+  {{#if isInRole 'admin'}}
+    <h4>The following retakes have been requested.</h4>
+    <div class="row">
+      <div class="col-md-12">
+      {{#each getListOfRetakeRequests}}
+        <ul class="scheduledRetake">
+          <button type="button" class="btn btn-success" id="approveRequest">Approve</button>
+          <button type="button" class="btn btn-danger" id="rejectRequest">Reject</button>
+          Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}
+        </ul>
+      {{/each}}
+      </div>
+    </div>
+  {{/if}}
 </template>
 
 <template name="loading">
@@ -80,18 +103,13 @@
 </template>
 
 <template name="main">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <div class="container-fluid">
     <header>
       {{> nav}}
     </header>
     {{> yield}}
   </div>
-
-  <nav class="navbar navbar-default navbar-fixed-bottom navbar-left">
-    <div class="container">
-      <hr />WatchaKnow?&copy;, Ian Frame, 2016.
-    </div>
-  </nav>
 </template>
 
 <template name="nav">
@@ -114,9 +132,8 @@
           {{/unless}}
           {{#if currentUser}}
             {{#if isInRole 'admin'}}
-              <li>
-              <a href="{{pathFor 'adminHome'}}">List of Retakes</a>
-              </li>
+              <li><a href="{{pathFor 'adminHome'}}">List of Retakes</a></li>
+              <li><a href="{{pathFor 'listOfRetakeRequests'}}">Retake Requests</a></li>
             {{else}}
               <li>
                 <a href="{{pathFor 'scheduleARetake'}}">Schedule a Retake</a>
