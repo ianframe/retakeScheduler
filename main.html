@@ -1,15 +1,19 @@
 <template name="adminHome">
-  <h4>List of Approved Scheduled Retakes</h4>
+  <h4>Approved Scheduled Retakes</h4>
   <hr />
-  <div class="row">
+  <p>Sort By: <a href="#" class="sortLink" id="sortByStandard">Standard</a> | <a href="#" class="sortLink" id="sortByDate">Date</a></p>
+  <hr />
+
+  {{#if hasApprovedRetakes}}
+    <div class="row">
     <div class="col-md-4">
       {{#each listOfAllApprovedRetakes}}
         <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
       {{/each}}
     </div>
   </div>
-  {{#if hasScheduledRetakes}}
-    <input type="submit" id="adminRemoveRetake" class="removeRetake btn btn-danger" value="Remove">
+    <hr />
+      <input type="submit" id="adminRemoveRetake" class="removeRetake btn btn-danger" value="Remove">
   {{else}}
     <p>There are no retakes scheduled at the moment.</p>
   {{/if}}
@@ -22,35 +26,42 @@
 
 <template name="listOfRetakes">
   {{#unless isInRole 'admin'}}
-    <h4>Your Approved Scheduled Retakes</h4>
+    <h3>Your Approved Scheduled Retakes</h3>
     <hr />
-    <div class="row">
-      <div class="col-md-3">
-      {{#each getscheduledApprovedRetakes}}
-        <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
-      {{/each}}
+    {{#if hasApprovedRetakes}}
+      <div class="row">
+        <div class="col-md-6">
+        {{#each getscheduledApprovedRetakes}}
+          <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+        {{/each}}
+        </div>
       </div>
-    </div>
+      {{else}}
+        <p>You don't have any approved retakes at the moment.</p>
+    {{/if}}
     <hr />
-    <h4>Your Requested Scheduled Retakes</h4>
+    <h3>Your Requested Scheduled Retakes</h3>
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-md-6">
         {{#each getscheduledRequestedRetakes}}
         <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
         {{/each}}
-        {{#if hasScheduledRetakes}}
+        {{#if hasRequestedRetakes}}
           <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
+        {{else}}
+          <p>You don't have any retakes in the queue. Care to change that?</p>
         {{/if}}
       </div>
     </div>
-    {{else}}
-      <p>{{numberOfRetakesStatement}}</p>
-    {{/unless}}
+  {{else}}
+    <p>{{numberOfRetakesStatement}}</p>
+  {{/unless}}
 </template>
 
 <template name="listOfRetakeRequests">
   {{#if isInRole 'admin'}}
-    <h4>The following retakes have been requested.</h4>
+    <h4>List of Retakes Requested</h4>
+    <hr />
     <div class="row">
       <div class="col-md-12">
       {{#each getListOfRetakeRequests}}
@@ -250,8 +261,8 @@
                   $('#datetimepicker5').datetimepicker({
                       defaultDate: moment(),
                       disabledDates: [],
-                      daysOfWeekDisabled : [0, 6],
-
+                      daysOfWeekDisabled : [0, 6, (new Date()).getDay()],
+                      disabledHours : [0, 1, 2, 3, 4, 5, 6, 7, 17, 18, 19, 20, 21, 22, 23, 24]
                   });
               });
           </script>

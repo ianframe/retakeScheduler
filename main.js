@@ -37,7 +37,13 @@ Router.route('/adminHome',{
 });
 Router.route('/scheduleARetake', {
 	template: 'scheduleARetake',
-	name: 'scheduleARetake'
+	name: 'scheduleARetake',
+
+	onRun : function()
+	{
+		Bert.alert('Remember that you can schedule two retakes per day.', 'warning', 'fixed-top');
+		this.next();
+	}
 });
 
 Router.route('/listOfRetakeRequests',{
@@ -89,7 +95,16 @@ Meteor.methods({
 				Retakes.remove({_id : selectedRetake});
 			else
 				Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
-		}
+		},
+
+		'sendVerificationEmail' : function()
+		{
+			let currentUserId = Meteor.userId();
+			if (currentUserId)
+			{
+				Accounts.sendVerificationEmail(currentUserId);
+			}
+		},
 });
 
 if (Meteor.isClient)
@@ -136,6 +151,14 @@ if (Meteor.isClient)
 	});
 
 	Template.adminHome.events({
+		'click .sortLink' : function()
+		{
+			let sortPreference = event.target.id;
+			if (sortPreference == "sortByStandard")
+				Session.set('selectedSort', 'standard');
+			else 
+				Session.set('selectedSort', 'date');
+		},
 		'click .scheduledRetake' : function()
 		{
 			var retakeId = this._id;
@@ -149,13 +172,9 @@ if (Meteor.isClient)
 	});
 
 	Template.adminHome.helpers({
-		'listOfAllApprovedRetakes' : function()
+		'hasApprovedRetakes' : function()
 		{
-			return Retakes.find({status : 'approved'}, {sort : {date : 1, standard : 1}});
-		},
-		'hasScheduledRetakes' : function()
-		{
-			return (Retakes.find({}).count() != 0);
+			return (Retakes.find({status : 'approved'}).count() != 0);
 		},
 		'selectedRetake' : function()
 		{
@@ -164,7 +183,16 @@ if (Meteor.isClient)
 			if (retakeId == selectedRetake)
 				return "selected";
 		},
+		'listOfAllApprovedRetakes' : function()
+		{
+			let sortPreference = Session.get('selectedSort');
+			if (sortPreference == 'standard')
+				return Retakes.find({status : 'approved'}, {sort : {standard : 1}});
+			else
+				return Retakes.find({status : 'approved'}, {sort : {date : 1}});
+		}
 	});
+
 
 	Template.listOfRetakes.events({
 		'click .scheduledRetake' : function()
@@ -193,10 +221,17 @@ if (Meteor.isClient)
 			var currentUserId = Meteor.userId();
 			return Retakes.find({createdBy : currentUserId, status : 'requested'}, {sort: {date : 1, standard : 1}});
 		},
-		'hasScheduledRetakes' : function()
+		'hasApprovedRetakes' : function()
+		{
+			if (Retakes.find({status : 'approved'}).count() != 0)
+				return true;
+			else
+				return false;
+		},
+		'hasRequestedRetakes' : function()
 		{
 			var currentUserId = Meteor.userId();
-			if (Retakes.find({createdBy : currentUserId}).count() != 0)
+			if (Retakes.find({createdBy : currentUserId, status : 'requested'}).count() != 0)
 				return true;
 			else
 				return false;
@@ -214,11 +249,22 @@ if (Meteor.isClient)
 		},
 		'numberOfRetakesStatement' : function()
 		{
-			let numOfRetakes = Retakes.find().count();
-			if (numOfRetakes == 1)
-				return "There is 1 retake scheduled.";
+			let message = "";
+			let numOfApprovedRetakes = Retakes.find({status : 'approved'}).count();
+			if (numOfApprovedRetakes == 1)
+				message = "There is 1 approved retake scheduled. ";
 			else
-				return "There are " + numOfRetakes + " retakes scheduled.";
+				message = "There are " + numOfApprovedRetakes + " approved retakes scheduled. ";
+
+			let numOfRequestedRetakes = Retakes.find({status : 'requested'}).count();
+			if (numOfRequestedRetakes == 0)
+				message += "There are no requests for retakes.";
+			else if (numOfRequestedRetakes == 1)
+				message += "There is 1 retake requested.";
+			else
+				message += "There are " + numOfRequestedRetakes + " retakes requested.";
+			return message;
+
 		}
 	});
 
@@ -251,8 +297,13 @@ if (Meteor.isClient)
 		{
 			event.preventDefault();
 			let email = $('[name="email"]').val();
-			Accounts.forgotPassword({email : email});
-			alert("This feature is still in development. :) Talk to Frame about resetting your account.");
+			Accounts.forgotPassword({email : email}, function(error)
+			{
+				if (!error)
+					Bert.alert('An email with a reset link has been sent to your email!', 'info', 'fixed-top');
+				else
+					Bert.alert('Something has gone wrong. Contact the site admin.', 'danger', 'fixed-top');
+			})
 		}
 	});
 		
@@ -341,7 +392,7 @@ if (Meteor.isClient)
 				var email = $('[name="email"]').val();
 				var password = $('[name="password"]').val();
 				var confirmPassword = $('[name="confirmPassword"]').val();
-				Accounts.createUser({
+				var user = Accounts.createUser({
 					email : email, 
 					password : password,
 					profile : {
@@ -371,6 +422,7 @@ if (Meteor.isClient)
 						}
 					}
 				});
+				Meteor.call('sendVerificationEmail');
 			}
 		});
 	});
@@ -408,6 +460,8 @@ if (Meteor.isClient)
 
 if (Meteor.isServer)
 {
+	console.log(Meteor.users.find().fetch());
+
 	Meteor.publish('theRetakes', function(){
 		let currentUserId = this.userId;
 
