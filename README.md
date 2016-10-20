@@ -3,12 +3,12 @@ An online web app for AP CS students to reschedule their quiz retakes, view reso
 
 
 Alpha Version:
-+ Project currently supports roles functionality with an admin and student role.
-+ Users only see and schedule/remove retakes while logged in.
-+ Accounts contain student information for quick retake scheduling. User information is pulled from their profile. 
++ Project currently supports roles functionality with an admin and student role. 
 + Standard descriptions are dynamically generated after selecting the unit. 
++ Allows for two teachers to utilize the app. 
++ Retakes begin at a requested state and after admin approval transition to an approved state.
 
 Improvements Needed:
-+ Forgotten password
-+ Scaling to be used by multiple teachers.
-+ Text/email reminders to students before a scheduled retake.
++ Credits system to request a retake. 
++ Email system -- configure env variable and handle routing. 
++ Sample quizzes with keys for each standard.

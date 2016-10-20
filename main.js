@@ -63,7 +63,7 @@ Router.route('/listOfRetakeRequests',{
 });
 
 Meteor.methods({
-		'insertRetake' : function(userFirstName, userLastName, unit, standard, date)
+		'insertRetake' : function(userFirstName, userLastName, teacher, unit, standard, date)
 		{
 			var currentUserId = this.userId;
 			//schedule a retake and add it to the database
@@ -81,6 +81,7 @@ Meteor.methods({
 				createdBy : currentUserId,
 				firstName : userFirstName,
 				lastName : userLastName,
+				teacher : teacher,
 				unit : unit,
 				standard : standard,
 				date : date,
@@ -96,21 +97,10 @@ Meteor.methods({
 			else
 				Retakes.remove({_id : selectedRetake, createdBy : currentUserId});
 		},
-
-		'sendVerificationEmail' : function()
-		{
-			let currentUserId = Meteor.userId();
-			if (currentUserId)
-			{
-				Accounts.sendVerificationEmail(currentUserId);
-			}
-		},
 });
 
 if (Meteor.isClient)
 {
-	Meteor.subscribe('theRetakes');
-
 	$.validator.setDefaults({
 		rules : {
 			password :
@@ -150,6 +140,10 @@ if (Meteor.isClient)
 		}
 	});
 
+	Template.adminHome.onCreated(function() {
+		Meteor.subscribe('theRetakes');
+	})
+
 	Template.adminHome.events({
 		'click .sortLink' : function()
 		{
@@ -174,7 +168,9 @@ if (Meteor.isClient)
 	Template.adminHome.helpers({
 		'hasApprovedRetakes' : function()
 		{
-			return (Retakes.find({status : 'approved'}).count() != 0);
+			let currentUser = Meteor.user();
+			let currentTeacher = currentUser.profile.teacher;
+			return (Retakes.find({teacher : currentTeacher, status : 'approved'}).count() != 0);
 		},
 		'selectedRetake' : function()
 		{
@@ -185,12 +181,18 @@ if (Meteor.isClient)
 		},
 		'listOfAllApprovedRetakes' : function()
 		{
+			let currentUser = Meteor.user();
+			let currentTeacher = currentUser.profile.teacher;
 			let sortPreference = Session.get('selectedSort');
 			if (sortPreference == 'standard')
-				return Retakes.find({status : 'approved'}, {sort : {standard : 1}});
+				return Retakes.find({teacher : currentTeacher, status : 'approved'}, {sort : {standard : 1}});
 			else
-				return Retakes.find({status : 'approved'}, {sort : {date : 1}});
+				return Retakes.find({teacher : currentTeacher, status : 'approved'}, {sort : {date : 1}});
 		}
+	});
+
+	Template.listOfRetakes.onCreated(function() {
+		Meteor.subscribe('theRetakes');
 	});
 
 
@@ -214,16 +216,19 @@ if (Meteor.isClient)
 		'getscheduledApprovedRetakes' : function()
 		{
 			var currentUserId = Meteor.userId();
-			return Retakes.find({createdBy : currentUserId, status : 'approved'}, {sort: {date : 1, standard : 1}});
+			var studentsTeacher = Meteor.user().profile.teacher; 
+			return Retakes.find({createdBy : currentUserId, teacher : studentsTeacher, status : 'approved'}, {sort: {date : 1, standard : 1}});
 		},
 		'getscheduledRequestedRetakes' : function()
 		{
 			var currentUserId = Meteor.userId();
-			return Retakes.find({createdBy : currentUserId, status : 'requested'}, {sort: {date : 1, standard : 1}});
+			var studentsTeacher = Meteor.user().profile.teacher;
+			return Retakes.find({createdBy : currentUserId, teacher : studentsTeacher, status : 'requested'}, {sort: {date : 1, standard : 1}});
 		},
 		'hasApprovedRetakes' : function()
 		{
-			if (Retakes.find({status : 'approved'}).count() != 0)
+			var studentsTeacher = Meteor.user().profile.teacher;
+			if (Retakes.find({teacher : studentsTeacher, status : 'approved'}).count() != 0)
 				return true;
 			else
 				return false;
@@ -249,14 +254,15 @@ if (Meteor.isClient)
 		},
 		'numberOfRetakesStatement' : function()
 		{
+			let currentTeacher = Meteor.user().profile.teacher;
 			let message = "";
-			let numOfApprovedRetakes = Retakes.find({status : 'approved'}).count();
+			let numOfApprovedRetakes = Retakes.find({teacher : currentTeacher, status : 'approved'}).count();
 			if (numOfApprovedRetakes == 1)
 				message = "There is 1 approved retake scheduled. ";
 			else
 				message = "There are " + numOfApprovedRetakes + " approved retakes scheduled. ";
 
-			let numOfRequestedRetakes = Retakes.find({status : 'requested'}).count();
+			let numOfRequestedRetakes = Retakes.find({teacher : currentTeacher, status : 'requested'}).count();
 			if (numOfRequestedRetakes == 0)
 				message += "There are no requests for retakes.";
 			else if (numOfRequestedRetakes == 1)
@@ -284,7 +290,8 @@ if (Meteor.isClient)
 	Template.listOfRetakeRequests.helpers({
 		'getListOfRetakeRequests' : function()
 		{
-			return Retakes.find({status : 'requested'}, {sort : {date : 1}});
+			let currentTeacher = Meteor.user().profile.teacher;
+			return Retakes.find({teacher : currentTeacher, status : 'requested'}, {sort : {date : 1}});
 		}
 	});
 
@@ -296,14 +303,8 @@ if (Meteor.isClient)
 		'click #forgotPasswordButton' : function(event)
 		{
 			event.preventDefault();
-			let email = $('[name="email"]').val();
-			Accounts.forgotPassword({email : email}, function(error)
-			{
-				if (!error)
-					Bert.alert('An email with a reset link has been sent to your email!', 'info', 'fixed-top');
-				else
-					Bert.alert('Something has gone wrong. Contact the site admin.', 'danger', 'fixed-top');
-			})
+			alert("Feature is still in development. Talk to Frame about resetting your password.");
+
 		}
 	});
 		
@@ -389,6 +390,7 @@ if (Meteor.isClient)
 			{
 				var firstName = $('[name="firstName"]').val();
 				var lastName = $('[name="lastName"]').val();
+				var teacher = $('[name="teacher"]').val();
 				var email = $('[name="email"]').val();
 				var password = $('[name="password"]').val();
 				var confirmPassword = $('[name="confirmPassword"]').val();
@@ -397,7 +399,8 @@ if (Meteor.isClient)
 					password : password,
 					profile : {
 						firstName : firstName,
-						lastName : lastName
+						lastName : lastName,
+						teacher : teacher
 					}
 				}, function(error){
 					if (error)
@@ -422,7 +425,6 @@ if (Meteor.isClient)
 						}
 					}
 				});
-				Meteor.call('sendVerificationEmail');
 			}
 		});
 	});
@@ -440,6 +442,12 @@ if (Meteor.isClient)
 			});
 		},
 
+		'click .resend-verification-link' : function(event)
+		{
+			event.preventDefault();
+			alert("Feature is still in development. Talk to Frame about resetting your password.");
+		},
+
 		'submit form' : function(event)
 		{
 			event.preventDefault();
@@ -450,8 +458,9 @@ if (Meteor.isClient)
 			var user = Meteor.user();
 			var userFirstName = user.profile.firstName;
 			var userLastName = user.profile.lastName;
+			var teacher = user.profile.teacher;
 			//pass client-side data and pass it into the server-side insertion
-			Meteor.call('insertRetake', userFirstName, userLastName, unit, standard, date);
+			Meteor.call('insertRetake', userFirstName, userLastName, teacher, unit, standard, date);
 			$('#orderForm')[0].reset();
 			Router.go('home');
 		}
@@ -460,11 +469,8 @@ if (Meteor.isClient)
 
 if (Meteor.isServer)
 {
-	console.log(Meteor.users.find().fetch());
-
 	Meteor.publish('theRetakes', function(){
 		let currentUserId = this.userId;
-
 		if (Roles.userIsInRole(this.userId, 'admin'))
 			return Retakes.find({});
 		else
@@ -496,11 +502,10 @@ if (Meteor.isServer)
 		user.profile = options.profile;
 		if (user.emails[0].address == "ian.frame@hies.org")
 			user.roles = ['student', 'admin'];
+		else if (user.emails[0].address == "dan.forrestal@hies.org")
+			user.roles = ['student', 'admin'];
 		else
 			user.roles = ['student'];
 	  return user;
-	});
-
-	Email.send({
 	});
 }
