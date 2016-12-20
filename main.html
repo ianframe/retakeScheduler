@@ -1,13 +1,49 @@
+<template name="adminCredits">
+  {{#if isInRole 'admin'}}
+  <div class="fixedCreditsHeader">
+    <h4>Student Credits</h4>
+    <hr />
+  </div>
+    <div class="col col-sm-1 adjustCredits">
+      <nav class="navbar navbar-fixed-side">
+        <div class="btn-group-vertical" role="group">
+          <button type="button" class="btn btn-primary" id="addCredit">Add Credit</button>
+          <button type="button" class="btn btn-warning" id="subCredit">Sub Credit</button>
+        </div>
+      </nav>
+    </div>
+  <br>
+    <div class="container creditsTable">
+      <table class="table table-fixed">
+        <thead>
+          <th>First Name</th>
+          <th>Last Name</th>
+          <th>Credits</th>
+        </thead>
+        <tbody>
+          {{#each getListOfStudents}}
+            <tr class="{{selectedStudent}}">
+              <td>{{profile.firstName}}</td>
+              <td>{{profile.lastName}}</td>
+              <td>{{profile.credits}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  {{/if}}
+</template>
+
 <template name="adminHome">
-  <h4>Approved Scheduled Retakes</h4>
+  <h4>Scheduled Retakes</h4>
   <hr />
   <p>Sort By: <a href="#" class="sortLink" id="sortByStandard">Standard</a> | <a href="#" class="sortLink" id="sortByDate">Date</a></p>
   <hr />
 
-  {{#if hasApprovedRetakes}}
+  {{#if hasScheduledRetakes}}
     <div class="row">
     <div class="col-md-4">
-      {{#each listOfAllApprovedRetakes}}
+      {{#each listOfAllScheduledRetakes}}
         <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}</p>
       {{/each}}
     </div>
@@ -24,56 +60,35 @@
   {{> navigation}}
 </template>
 
+<template name="infoForRetakes">
+  <hr>
+  <p><strong>Available Credits</strong> <span class="badge">{{getNumberOfCredits}}</span></p>
+</template>
+
 <template name="listOfRetakes">
   {{#unless isInRole 'admin'}}
-    <h3>Your Approved Scheduled Retakes</h3>
+    <h3>Your Scheduled Retakes</h3>
     <hr />
-    {{#if hasApprovedRetakes}}
+    {{#if hasScheduledRetakes}}
       <div class="row">
-        <div class="col-md-6">
-        {{#each getscheduledApprovedRetakes}}
-          <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
+        <div class="col-md-4">
+        {{#each getscheduledRetakes}}
+          <p class="scheduledRetake {{selectedRetake}}">{{subject}} | Unit {{standard}} | {{date}} | {{time}}</p>
         {{/each}}
         </div>
       </div>
+      <div class="">
+        <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Retake">
+        <input type="submit" class="modifyRetake btn btn-info" value="Reschedule Retake">
+      </div>
       {{else}}
-        <p>You don't have any approved retakes at the moment.</p>
+        <p>You don't have any scheduled retakes at the moment.</p>
     {{/if}}
     <hr />
-    <h3>Your Requested Scheduled Retakes</h3>
-    <div class="row">
-      <div class="col-md-6">
-        {{#each getscheduledRequestedRetakes}}
-        <p class="scheduledRetake {{selectedRetake}}">Unit {{standard}} | {{date}}</p>
-        {{/each}}
-        {{#if hasRequestedRetakes}}
-          <input type="submit" class="cancelRetake btn btn-danger" value="Cancel Request">
-        {{else}}
-          <p>You don't have any retakes in the queue. Care to change that?</p>
-        {{/if}}
-      </div>
-    </div>
+    {{> rescheduleARetake}}
   {{else}}
     <p>{{numberOfRetakesStatement}}</p>
   {{/unless}}
-</template>
-
-<template name="listOfRetakeRequests">
-  {{#if isInRole 'admin'}}
-    <h4>List of Retakes Requested</h4>
-    <hr />
-    <div class="row">
-      <div class="col-md-12">
-      {{#each getListOfRetakeRequests}}
-        <ul class="scheduledRetake">
-          <button type="button" class="btn btn-success" id="approveRequest">Approve</button>
-          <button type="button" class="btn btn-danger" id="rejectRequest">Reject</button>
-          Unit {{standard}} | {{date}} | {{time}} {{firstName}} {{lastName}}
-        </ul>
-      {{/each}}
-      </div>
-    </div>
-  {{/if}}
 </template>
 
 <template name="loading">
@@ -144,11 +159,10 @@
           {{#if currentUser}}
             {{#if isInRole 'admin'}}
               <li><a href="{{pathFor 'adminHome'}}">List of Retakes</a></li>
-              <li><a href="{{pathFor 'listOfRetakeRequests'}}">Retake Requests</a></li>
+              <li><a href="{{pathFor 'adminCredits'}}">Student Credits</a></li>
             {{else}}
-              <li>
-                <a href="{{pathFor 'scheduleARetake'}}">Schedule a Retake</a>
-              </li>
+              <li><a href="{{pathFor 'scheduleARetake'}}">Schedule a Retake</a></li>
+              <li><a href="{{pathFor 'sampleQuizzes'}}">Sample Quizzes</a></li>
             {{/if}}
           {{/if}}
         </ul>
@@ -177,7 +191,10 @@
 
 <template name="navigation">
   {{#if currentUser}}
-    <h2>Welcome, {{getFirstName}}!</h2>
+    <h2>Hi, {{getFirstName}}!</h2>
+      {{#unless isInRole 'admin'}}
+        {{> infoForRetakes}}
+      {{/unless}}
       {{> listOfRetakes}}
   {{else}}
     <h4>An online scheduler for you to demonstrate your learning in AP Computer Science. Register or
@@ -230,23 +247,107 @@
   </form>
 </template>
 
+<template name="rescheduleARetake">
+  {{#if doesUserWishToReschedule}}
+    <h3>Reschedule Your Retake</h3>
+    <form method="post" id="rescheduleRetake">
+      <div class="form-group">
+        <label for="fiveDayDate">Choose Your New Date</label>
+            <div class="row">
+              <div class="col-md-4">
+                <select class="form-control" name="rescheduleFiveDayDate" id="rescheduleFiveDayDate">
+                  <script type="text/javascript">
+                  $(function() {
+                    //generate next five school days
+                    let i = 1;
+                    let today = new Date();
+                    let nextFiveDays = [];
+                    while (nextFiveDays.length < 5)
+                    {
+                      let potentialDateTime = today.getTime() + (i * 24 * 60 * 60 * 1000);
+                      potentialDate = new Date(potentialDateTime);
+                      if (potentialDate.getDay() == 0 || potentialDate.getDay() == 6)
+                      {
+                        i++
+                      }
+                      else
+                      {
+                        nextFiveDays.push(potentialDate.toDateString());
+                        i++;
+                      }
+                    }
+                    $('#rescheduleFiveDayDate').html("<option selected='true' disabled='disabled'>Select a Day</option><option value='" + nextFiveDays[0] + "'>" + nextFiveDays[0] + "</option><option value='" + nextFiveDays[1] + "'>" + nextFiveDays[1] + "</option><option value='" + nextFiveDays[2] + "'>" + nextFiveDays[2] + "</option><option value= '" + nextFiveDays[3] + "'>" + nextFiveDays[3] + "</option><option value='" + nextFiveDays[4] + "'>" + nextFiveDays[4] + "</option>");
+                    });
+                  </script>
+                </select>
+              </div>
+            </div>
+
+            <label for="time">Choose Your New Time</label>
+            <div class="row">
+              <div class="col-md-4">
+              <select class="form-control" name="rescheduleTime" id="rescheduleTime">
+                <option disabled selected>Select a Time</option>
+                <option value="8:00 AM">Before School - 8:00 AM</option>
+                <option value="10:00 PM">Advisory - 10:00 AM</option>
+                <option value="3:15 PM">After School - 3:15 PM</option>
+              </select>
+              </div>
+            </div>
+          </div>
+        <input type="submit" class="btn btn-success" id="submitReschedule" value="Submit">
+        <input type="submit" class="btn btn-danger" id="cancelReschedule" value="Cancel">
+      </form>
+  {{/if}}
+</template>
+
+<template name="sampleQuizzes">
+  <div class="alert alert-warning" role="alert">
+  <h3>Feature is still in development. Expected release January 2017.</h3>
+  </div>
+</template>
+
 <template name="scheduleARetake">
   {{#if currentUser}}
+    {{#unless hasCredits}}
+      <br>
+      <div class="alert alert-danger" role="alert">
+        <h2>Aw geeze! You don't have enough credits to schedule a retake.</h2>
+        <p><strong>How can you earn credits to schedule a retake?</strong></p>
+        <ul>
+          <li>See Mr. Frame during tutorial hours to review and correct your quizzes.</li>
+          <li>Show Mr. Frame additional work you've done to show that you're ready for your next attempt.</li>
+          <li>Help somebody out during tutorial hours with the standard you're trying to retake.</li>
+        </ul>
+        <br>
+        <p><strong>Think you should have credits?</strong></p>
+        <ul>At my old age of 72 (where <em>does</em> the time go?) I do tend to forget things sometimes. I may have forgotten to update your credits after a tutorial session. Just shoot me an email politely reminding me of my mistake.</ul>
+      </div>
+    {{else}}
     <form method="post" id="orderForm">
       <div class="form-group">
-        <label for="unit">Unit:</label>
+        <label for="subject">Subject</label>
         <div class="row">
           <div class="col-md-4">
-        <select class="form-control" name="unit" id="unit">
-          <option disabled selected>Select a Unit</option>
-          <option value="u2">Unit 2 - Class Definitions</option>
-          <option value="u1">Unit 1 - Introduction to Object-Oriented Programming</option>
-          <option value="u0">Unit 0 - Introduction to Computing</option>
-        </select> 
+          <select class="form-control" name="subject" id="subject">
+            <option disabled selected>Select a Subject</option>
+            <option value="AP CS">AP Computer Science</option>
+            <option value="AP Calculus B/C">AP Calculus B/C</option>
+          </select>
+          </div>
+        </div>
+
+
+        <label for="unit">Unit</label>
+        <div class="row">
+          <div class="col-md-4">
+          <select class="form-control" name="unit" id="unit">
+            <option disabled selected>Select a Unit</option>
+          </select> 
         </div>
       </div>
-        <br>
-        <label for="standard">Standard:</label>
+
+        <label for="standard">Standard</label>
         <div class="row">
           <div class="col-md-4">
             <select class="form-control" name="standard" id="standard">
@@ -254,8 +355,52 @@
             </select>
           </div>
         </div>
+
+        <label for="fiveDayDate">Retake Date</label>
+        <div class="row">
+          <div class="col-md-4">
+            <select class="form-control" name="fiveDayDate" id="fiveDayDate">
+              <script type="text/javascript">
+              $(function() {
+                //generate next five school days
+                let i = 1;
+                let today = new Date();
+                let nextFiveDays = [];
+                while (nextFiveDays.length < 5)
+                {
+                  let potentialDateTime = today.getTime() + (i * 24 * 60 * 60 * 1000);
+                  potentialDate = new Date(potentialDateTime);
+                  if (potentialDate.getDay() == 0 || potentialDate.getDay() == 6)
+                  {
+                    i++
+                  }
+                  else
+                  {
+                    nextFiveDays.push(potentialDate.toDateString());
+                    i++;
+                  }
+                }
+                $('#fiveDayDate').html("<option selected='true' disabled='disabled'>Select a Day</option><option value='" + nextFiveDays[0] + "'>" + nextFiveDays[0] + "</option><option value='" + nextFiveDays[1] + "'>" + nextFiveDays[1] + "</option><option value='" + nextFiveDays[2] + "'>" + nextFiveDays[2] + "</option><option value= '" + nextFiveDays[3] + "'>" + nextFiveDays[3] + "</option><option value='" + nextFiveDays[4] + "'>" + nextFiveDays[4] + "</option>");
+                });
+              </script>
+            </select>
+          </div>
+        </div>
+
+        <label for="time">Retake Time</label>
+        <div class="row">
+          <div class="col-md-4">
+          <select class="form-control" name="time" id="time">
+            <option disabled selected>Select a Time</option>
+            <option value="8:00 AM">Before School - 8:00 AM</option>
+            <option value="10:00 AM">Advisory - 10:00 AM</option>
+            <option value="3:15 PM">After School - 3:15 PM</option>
+          </select>
+          </div>
+        </div>
       </div>
- 
+
+      <!--
       <label for="date">Date:</label>
       <div class="row">
         <div class='col-md-3'>
@@ -264,7 +409,7 @@
                 <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                 </span>
-                <input type='text' name="dateText" class="form-control" />
+                <input type='text' name="dateText" class="form-control"/>
               </div>
           </div>
         </div>
@@ -272,15 +417,19 @@
               $(function () {
                   $('#datetimepicker5').datetimepicker({
                       defaultDate: moment(),
-                      disabledDates: [],
-                      daysOfWeekDisabled : [0, 6, (new Date()).getDay()],
-                      disabledHours : [0, 1, 2, 3, 4, 5, 6, 7, 17, 18, 19, 20, 21, 22, 23, 24]
+                      disabledDates: [new Date()],
+                      daysOfWeekDisabled : [0, 6],
+                      disabledHours : [0, 1, 2, 3, 4, 5, 6, 7, 17, 18, 19, 20, 21, 22, 23, 24],
+                      format: 'ddd MMM DD YYYY HH:mm A'
                   });
               });
           </script>
       </div>
-
+      -->
+      
+      <br>
       <input type="submit" class="btn btn-primary" value="Schedule">
     </form>
+    {{/unless}}
   {{/if}}
 </template>
