@@ -11,3 +11,5 @@ Beta Version:
 Improvements Needed:
 + Email system -- configure env variable and handle routing. 
 + Sample quizzes with keys for each standard.
+
+This basis for this project is credited to Evan Weinberg: https://github.com/ianframe/weinbergCloud
