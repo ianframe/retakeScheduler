@@ -3,6 +3,21 @@
 	padding: .2em;
 }
 
+.creditsTable{
+	padding-top: 50px;
+	padding-left: 100px;
+}
+
+.fixedCreditsHeader{
+	position: fixed;
+}
+
+.adjustCredits{
+	top: 150px;
+	padding-left: 10px;
+	position: fixed;
+}
+
 .selected{
 	background-color: LightCoral;
 }
@@ -30,4 +45,8 @@ input.error{
 .sortLink:hover{
 	text-decoration: none;
 	color: red;
+}
+
+ul{
+	list-style: none;
 }

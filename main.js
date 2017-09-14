@@ -207,7 +207,8 @@ if (Meteor.isClient)
 		'getListOfStudents' : function()
 		{
 			let currentTeacher = Meteor.user().profile.teacher;
-			return Meteor.users.find({"profile.teacher" : currentTeacher}, {sort : {"profile.lastName" : 1}});
+			//return Meteor.users.find({"profile.teacher" : currentTeacher}, {sort : {"profile.lastName" : 1}});
+			return Meteor.users.find({},{sort : {"profile.lastName" : 1}});
 		},
 
 		'selectedStudent' : function()
@@ -268,9 +269,9 @@ if (Meteor.isClient)
 			let currentTeacher = currentUser.profile.teacher;
 			let sortPreference = Session.get('selectedSort');
 			if (sortPreference == 'standard')
-				return Retakes.find({teacher : currentTeacher}, {sort : {standard : 1}});
+				return Retakes.find({}, {sort : {standard : 1}});
 			else
-				return Retakes.find({teacher : currentTeacher}, {sort : {date : 1}});
+				return Retakes.find({}, {sort : {date : 1}});
 		}
 	});
 
@@ -458,6 +459,11 @@ if (Meteor.isClient)
 		'submit form' : function(event)
 		{
 			event.preventDefault();
+		},
+		'click #testButton' : function(event)
+		{
+			event.preventDefault();
+			console.log($('[name="course"]').val());
 		}
 	});
 
@@ -542,11 +548,15 @@ if (Meteor.isClient)
 				console.log(subjectChangedTo);
 				if (subjectChangedTo == "AP CS")
 				{
-					$('#unit').html("<select class='form-control' name='unit' id='unit'><option disabled selected>Select a Unit</option><option value='u4'>Unit 4 - Collections and Looping</option><option value='u2'>Unit 2 - Class Definitions</option><option value='u1'>Unit 1 - Introduction to Object-Oriented Programming</option><option value='u0'>Unit 0 - Introduction to Computing</option></select> ");
+					$('#unit').html("<select class='form-control' name='unit' id='unit'><option disabled selected>Select a Unit</option><option value='u9'>Unit 9 - Algorithms</option><option value='u8'>Unit 8 - Inheritance</option><option value='u5'>Unit 5 - Two-Dimensional Arrays</option><option value='u4'>Unit 4 - Collections and Looping</option><option value='u2'>Unit 2 - Class Definitions</option><option value='u1'>Unit 1 - Introduction to Object-Oriented Programming</option><option value='u0'>Unit 0 - Introduction to Computing</option></select> ");
 				}
 				else if (subjectChangedTo == "AP Calculus B/C")
 				{
-					$('#unit').html("<select class='form-control' name='unit' id='unit'><option disabled selected>Select a Unit</option><option value='u6'>Unit 6 - Integral Applications</option><option value='u7'>Unit 7 - Differential Equations</option><option value='u8'>Unit 8 - Sequences & Series</option><option value='u9'>Unit 9 - Taylor Polynomials</option><option value='u10'>Unit 10 - Vector, Parametric, & Polar Calculus</option></select>");
+					$('#unit').html("<select class='form-control' name='unit' id='unit'><option disabled selected>Select a Unit</option><option value='u1'>Unit 1 - Limits</option><option value='u2'>Unit 2 - Derivatives</option><option value='u3'>Unit 3 - Derivative Applications</option><option value-'u4'>Unit 4 - Integration</option><option value='u5'>Unit 5 - Transcendentals</option><option value='u6'>Unit 6 - Integral Applications</option><option value='u7'>Unit 7 - Differential Equations</option><option value='u8'>Unit 8 - Sequences & Series</option><option value='u9'>Unit 9 - Taylor Polynomials</option><option value='u10'>Unit 10 - Vector, Parametric, & Polar Calculus</option></select>");
+				}
+				else if (subjectChangedTo == "AP Physics 1")
+				{
+					$('#unit').html("<select class='form-control' name='unit' id='unit'><option disabled selected>Select a Unit</option><option value='u1'>Unit 1 - Kinematics</option></select>");
 				}
 				$('#standard').html("<select class='form-control' name='standard' id='standard'><option value='' disabled selected>Select a Standard</option></select>");
 			});	
@@ -558,8 +568,14 @@ if (Meteor.isClient)
 				if (subjectChangedTo == "AP CS")
 				{
 					var unitChangedTo = $('[name="unit"]').val();
-					if (unitChangedTo == "u4")
-						$('#standard').html("<option value='4A'>A - Creating and Populating Arrays</option><option value='4C'>C - Working with For and While Loops</option><option value='4G'>G - Common Array Algorithms</option>");
+					if (unitChangedTo == "u9")
+						$('#standard').html("<option value='9A'>A - Recursion</option><option value='9B'>B - Searching Algorithms</option><option value='9C'>C - Sorting Algorithms</option>");
+					else if (unitChangedTo == "u8")
+						$('#standard').html("<option value='8A'>A - Inheritance Hierarchies and the Is-A Relationship</option><option value='8B'>B - Implementing a Subclass</option><option value='8C'>C - Overriding and Super Methods</option><option value='8D'>D - Polymorphism</option><option value='8E'>E - Abstract Classes</option>");
+					else if (unitChangedTo == "u5")
+						$('#standard').html("<option value='5A'>A - Understanding 2D Arrays</option><option value='5B'>B - Declaring, Instantiating, Accessing, and Assigning 2D Arrays</option><option value='5C'>C - Common 2D Array Algorithms</option>");
+					else if (unitChangedTo == "u4")
+						$('#standard').html("<option value='4A'>A - Creating and Populating Arrays</option><option value='4C'>C - Working with For and While Loops</option><option value='4E'>E - Searching Methods with Arrays of Objects</option><option value='4G'>G - Common Array Algorithms</option>");
 					else if (unitChangedTo == "u2")
 						$('#standard').html("<option value='2A'>A - Class Construction with Fields and Constructors</option><option value='2B'>B - Accessor and Mutator Methods</option><option value='2C'>C - Variable Assignment Operators</option><option value='2D'>D - Java Math</option><option value='2E'>E - String Methods</option><option value='2F'>F - Conditionals</option><option value='2G'>G - Working with APIs</option><option value='2H'>H - Logical Operators and Boolean Expressions</option>");
 					else if (unitChangedTo == "u1")
@@ -570,7 +586,13 @@ if (Meteor.isClient)
 				else if (subjectChangedTo == "AP Calculus B/C")
 				{
 					var unitChangedTo = $('[name="unit"]').val();
-					if (unitChangedTo == "u6")
+					if (unitChangedTo == "u1")
+						$('#standard').html("<option value='1A'>A - Tabular & Graphical Limits</option><option value='1B'>B - Algebraic Limits</option><option value='1C'>C - Continuity</option><option value='1D'>D - Infinite Limits & Limits at Infinity</option><option value='1E'>E - Limit Notation</option>");
+					else if (unitChangedTo == "u2")
+						$('#standard').html("<option value='2A'>A - Tabular & Graphical Estimates of Derivatives</option><option value='2B'>B - Derivative Meaning in Word Problems</option><option value='2C'>C - Algebraic Derivatives</option><option value='2D'>D - Implicit Differentiation</option><option value='2E'>E - Related Rates</option>");
+					else if (unitChangedTo == "u3")
+						$('#standard').html("<option value='3A'>A - IVT, EVT, MVT & Rolle’s Theorems</option><option value='3B'>B - First Derivative Analysis</option><option value='3C'>C - Second Derivative Analysis</option><option value='3D'>D - Optimization</option><option value='3E'>E - Tangent Lines & Differentials</option>");
+					else if (unitChangedTo == "u6")
 						$('#standard').html("<option value='6A'>A - Determining Length, Area, and Volume of Shapes</option><option value='6B'>B - Integration by Parts</option><option value='6C'>C - Integrating Quotients</option><option value='6D'>D - Evaluating Indeterminate Limits</option><option value='6E'>E - Improper Integrals</option>");
 					else if (unitChangedTo == "u7")
 						$('#standard').html("<option value='7A'>A - General & Specific Solutions to Differential Equations</option><option value='7B'>B - Slope Fields</option><option value='7C'>C - Euler's Method</option><option value='7D'>D - Separation of Variables</option><option value='7E'>E - Logistic Growth</option>");
@@ -580,7 +602,13 @@ if (Meteor.isClient)
 						$('#standard').html("<option value='9A'>A - Constructing and Using Taylor Polynomials</option><option value='9B'>B - Power Series for Function Representation</option><option value='9C'>C - Radius and Interval of Convergence of a Power Series</option><option value='9D'>D - Taylor's Theorem to Error Bound Polynomials</option><option value='9E'>E - Calculus on Power Series</option>");
 					else if (unitChangedTo == "u10")
 						$('#standard').html("<option value='10A'>A - Calculus with Vector-Defined Functions</option><option value='10B'>B - Calculus with Parametrically-Defined Functions</option><option value='10C'>C - Parametrically-Defined Motion Problems</option><option value='10D'>D - Calculus with Polar Equations</option><option value='10E'>E - Area Bounded by Polar Curves</option>");
-				}				
+				}
+				else if (subjectChangedTo == "AP Physics 1")
+				{
+					var unitChangedTo = $('[name="unit"]').val();
+					if (unitChangedTo == "u1")
+						$('#standard').html("<option value='1A'>A - Graphical Representations of Motion</option><option value='1C'>C - Constant Acceleration</option><option value='1D'>D - Projectiles</option>");				
+				}
 			});
 		},
 
@@ -598,44 +626,41 @@ if (Meteor.isClient)
 		'submit form' : function(event)
 		{
 			event.preventDefault();
-			if (confirm("Are you sure the information is correct? You will not be able to modify your standard."))
-			{
-				//gather user data to add to the database
-				var subject = $('[name="subject"]').val();
-				var unit = $('[name="unit"]').val();
-				var standard = $('[name="standard"]').val();
-				var date = $('[name="fiveDayDate"]').val();
-				var time = $('[name="time"]').val();
-
-				var user = Meteor.user();
-				var userId = user._id;
-				var userFirstName = user.profile.firstName;
-				var userLastName = user.profile.lastName;
-				var teacher = user.profile.teacher;
-				var currentNumOfCredits = user.profile.credits;
-
-				let today = String(new Date());
-				let todayDate = today.substring(0, 15);
-
-				if (!(todayDate == date)) //the student planned ahead. 
-				{
-					//check to see if they have enough credits.
-					if (currentNumOfCredits > 0)
-					{
-						console.log(subject);
-						Meteor.call('insertRetake', userFirstName, userLastName, teacher, subject, unit, standard, date, today, time);
-						Meteor.call('subCreditFromStudent', userId);
-						$('#orderForm')[0].reset();
-						Router.go('home');
-					}
-					
-				}
-				else
-				{
-					Bert.alert('You cannot schedule a retake the day of. Frame needs time to print these quizzes. Try tomorrow.', 'danger', 'growl-top-right');
-				}
-			}
 			
+			//gather user data to add to the database
+			var subject = $('[name="subject"]').val();
+			var unit = $('[name="unit"]').val();
+			var standard = $('[name="standard"]').val();
+			var date = $('[name="fiveDayDate"]').val();
+			var time = $('[name="time"]').val();
+
+			var user = Meteor.user();
+			var userId = user._id;
+			var userFirstName = user.profile.firstName;
+			var userLastName = user.profile.lastName;
+			var teacher = user.profile.teacher;
+			var currentNumOfCredits = user.profile.credits;
+
+			let today = String(new Date());
+			let todayDate = today.substring(0, 15);
+
+			if (!(todayDate == date)) //the student planned ahead. 
+			{
+				//check to see if they have enough credits.
+				if (currentNumOfCredits > 0)
+				{
+					console.log(subject);
+					Meteor.call('insertRetake', userFirstName, userLastName, teacher, subject, unit, standard, date, today, time);
+					Meteor.call('subCreditFromStudent', userId);
+					$('#orderForm')[0].reset();
+					Router.go('home');
+				}
+				
+			}
+			else
+			{
+				Bert.alert('You cannot schedule a retake the day of. Frame needs time to print these quizzes. Try tomorrow.', 'danger', 'growl-top-right');
+			}
 		}
 	});
 
@@ -668,8 +693,9 @@ if (Meteor.isServer)
 		if (Roles.userIsInRole(this.userId, 'admin'))
 		{
 			let currentTeacher = Meteor.users.find({_id: currentUserId}).fetch()[0].profile.teacher;
-			let options = {fields : {"profile.firstName":1, "profile.lastName": 1, "profile.teacher":1, "profile.credits":1}};
-			return Meteor.users.find({"profile.teacher" : currentTeacher}, options);
+			//let options = {fields : {"profile.firstName":1, "profile.lastName": 1, "profile.teacher":1, "profile.credits":1}};
+			//return Meteor.users.find({"profile.teacher" : currentTeacher});
+			return Meteor.users.find({});
 		}
 		this.stop();
 		return;
@@ -718,6 +744,8 @@ if (Meteor.isServer)
 		if (user.emails[0].address == "ian.frame@hies.org")
 			user.roles = ['student', 'admin'];
 		else if (user.emails[0].address == "dan.forrestal@hies.org")
+			user.roles = ['student', 'admin'];
+		else if (user.emails[0].address == "john.taylor@hies.org")
 			user.roles = ['student', 'admin'];
 		else
 			user.roles = ['student'];

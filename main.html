@@ -215,18 +215,21 @@
         <label>Last Name: </label><input type="text" class="form-control" name="lastName" autocomplete="off" required>
         </div>
     </div>
+
     <div class="form-group">
-        <label for="teacher">Teacher:</label>
+        <label for="teacher">Teacher(s):</label>
         <div class="row">
           <div class="col-md-3">
-        <select class="form-control" name="teacher" id="teacher">
-          <option disabled selected>Select Your Teacher</option>
+        <select multiple class="form-control" name="teacher" id="teacher">
+          <option selected disabled>Select Your Teacher</option>
           <option value="frame">Mr. Frame</option>
           <option value="forrestal">Mr. Forrestal</option>
+          <option value="taylor">Mr. Taylor</option>
         </select> 
         </div>
       </div>
     </div>
+    
     <div class="row">
       <div class="col-md-3">
         <label>Email: </label><input type="email" class="form-control" name="email" autocomplete="off" placeholder="any valid email address" required>
@@ -289,7 +292,7 @@
               <select class="form-control" name="rescheduleTime" id="rescheduleTime">
                 <option disabled selected>Select a Time</option>
                 <option value="8:00 AM">Before School - 8:00 AM</option>
-                <option value="10:00 PM">Advisory - 10:00 AM</option>
+                <option value="10:00 AM">Advisory - 10:00 AM</option>
                 <option value="3:15 PM">After School - 3:15 PM</option>
               </select>
               </div>
@@ -303,7 +306,7 @@
 
 <template name="sampleQuizzes">
   <div class="alert alert-warning" role="alert">
-  <h3>Feature is still in development. Expected release January 2017.</h3>
+  <h3>Feature is still in development. Expected release sometime in 2017. </h3>
   </div>
 </template>
 
@@ -333,6 +336,7 @@
             <option disabled selected>Select a Subject</option>
             <option value="AP CS">AP Computer Science</option>
             <option value="AP Calculus B/C">AP Calculus B/C</option>
+            <option value="AP Physics 1">AP Physics 1</option>
           </select>
           </div>
         </div>
