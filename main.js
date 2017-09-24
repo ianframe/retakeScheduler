@@ -577,7 +577,7 @@ if (Meteor.isClient)
 					else if (unitChangedTo == "u4")
 						$('#standard').html("<option value='4A'>A - Creating and Populating Arrays</option><option value='4C'>C - Working with For and While Loops</option><option value='4E'>E - Searching Methods with Arrays of Objects</option><option value='4G'>G - Common Array Algorithms</option>");
 					else if (unitChangedTo == "u2")
-						$('#standard').html("<option value='2A'>A - Class Construction with Fields and Constructors</option><option value='2B'>B - Accessor and Mutator Methods</option><option value='2C'>C - Variable Assignment Operators</option><option value='2D'>D - Java Math</option><option value='2E'>E - String Methods</option><option value='2F'>F - Conditionals</option><option value='2G'>G - Working with APIs</option><option value='2H'>H - Logical Operators and Boolean Expressions</option>");
+						$('#standard').html("<option value='2A'>A - Class Construction with Fields and Constructors</option><option value='2B'>B - Accessor and Mutator Methods</option><option value='2C'>C - Conditionals</option><option value='2D'>D - Java Math</option><option value='2E'>E - String Methods</option>");
 					else if (unitChangedTo == "u1")
 						$('#standard').html("<option value='1A'>A - Classes and Objects</option><option value='1B'>B - Data Types</option><option value='1C'>C - Object Dot Notation</option><option value='1D'>D - Appropriate Fields and Methods for a Class</option><option value='1E'>E - Object Diagrams and Object State</option>");
 					else if (unitChangedTo == "u0")
